@@ -1,0 +1,58 @@
+{
+    "calmfox_smtp_health": {
+        "column": {
+            "entity_id": true,
+            "store_id": true,
+            "status": true,
+            "cause": true,
+            "stage": true,
+            "reply_code": true,
+            "reply": true,
+            "checked_at": true,
+            "duration_ms": true,
+            "consecutive_failures": true,
+            "failing_since": true,
+            "last_ok_at": true,
+            "fingerprint": true,
+            "send_failures": true,
+            "send_failures_since": true,
+            "last_send_cause": true,
+            "last_send_error": true,
+            "last_sent_at": true,
+            "notified_cause": true,
+            "notified_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "CALMFOX_SMTP_HEALTH_STORE_ID": true
+        }
+    },
+    "calmfox_smtp_log": {
+        "column": {
+            "entity_id": true,
+            "created_at": true,
+            "store_id": true,
+            "outcome": true,
+            "provider": true,
+            "endpoint": true,
+            "from_address": true,
+            "recipients": true,
+            "subject": true,
+            "message_size": true,
+            "duration_ms": true,
+            "attempts": true,
+            "cause": true,
+            "error": true,
+            "raw_message": true,
+            "resent_at": true
+        },
+        "index": {
+            "CALMFOX_SMTP_LOG_CREATED_AT": true,
+            "CALMFOX_SMTP_LOG_OUTCOME_CREATED_AT": true,
+            "CALMFOX_SMTP_LOG_STORE_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    }
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+    Three permissions, because three different people need them.
+
+    The report says whether the shop can send and why not: useful to anybody who handles orders,
+    and harmless. The log holds what was sent — subjects, recipients, sometimes bodies — which is
+    customer correspondence and not something a warehouse role needs. The settings hold a
+    credential that can send mail as the shop, so they are separate again.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Calmfox_Smtp::smtp" title="E-mail sending" translate="title" sortOrder="16">
+                    <resource id="Calmfox_Smtp::health" title="Mail health report" translate="title" sortOrder="10"/>
+                    <resource id="Calmfox_Smtp::log" title="Mail log" translate="title" sortOrder="20"/>
+                    <resource id="Calmfox_Smtp::config" title="Mail sending settings" translate="title" sortOrder="30"/>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

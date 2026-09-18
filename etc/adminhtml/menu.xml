@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!--
+    In the main navigation rather than two levels down in the configuration, and for the same
+    reason the red bar exists: the person who needs to know that yesterday's order confirmations
+    never went out is not looking for a mail settings page. They came in to process orders.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Calmfox_Smtp::smtp"
+             title="E-mail"
+             translate="title"
+             module="Calmfox_Smtp"
+             sortOrder="16"
+             resource="Calmfox_Smtp::smtp"/>
+        <add id="Calmfox_Smtp::health"
+             title="Sending health"
+             translate="title"
+             module="Calmfox_Smtp"
+             parent="Calmfox_Smtp::smtp"
+             sortOrder="10"
+             action="calmfox_smtp/health/index"
+             resource="Calmfox_Smtp::health"/>
+        <add id="Calmfox_Smtp::log"
+             title="Sent messages"
+             translate="title"
+             module="Calmfox_Smtp"
+             parent="Calmfox_Smtp::smtp"
+             sortOrder="20"
+             action="calmfox_smtp/log/index"
+             resource="Calmfox_Smtp::log"/>
+    </menu>
+</config>

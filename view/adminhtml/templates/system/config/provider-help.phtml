@@ -1,0 +1,25 @@
+<?php
+/**
+ * The help panel under the provider list. Everything visible here is written by the browser
+ * module, because the point of it is to change the moment somebody picks a different provider.
+ *
+ * @var \Calmfox\Smtp\Block\Adminhtml\System\Config\ProviderHelp $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div class="calmfox-smtp-help"
+     data-calmfox-smtp-presets='<?= /* @noEscape */ $block->getPresetsJson() ?>'
+     data-calmfox-smtp-fields='<?= /* @noEscape */ (string) json_encode($block->getFieldIds()) ?>'>
+    <p class="calmfox-smtp-help__note" data-role="empty">
+        <?= $escaper->escapeHtml(__('Pick a provider and its server, port and encryption are filled in below.')) ?>
+    </p>
+    <ul class="calmfox-smtp-help__hints" data-role="hints"></ul>
+    <p class="calmfox-smtp-help__hosts" data-role="hosts"></p>
+    <p class="calmfox-smtp-help__docs" data-role="docs"></p>
+</div>
+<script>
+    require(['Calmfox_Smtp/js/provider-presets'], function (presets) {
+        'use strict';
+        presets('.calmfox-smtp-help');
+    });
+</script>

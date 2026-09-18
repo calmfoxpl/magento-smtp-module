@@ -1,0 +1,149 @@
+<?php
+/**
+ * The report page. Read top to bottom it answers: can the shop send, why not, what do I do, who
+ * would have been told, and is every storefront in the same state.
+ *
+ * @var \Calmfox\Smtp\Block\Adminhtml\Health $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$state = $block->getState();
+$storeViews = $block->getStoreViews();
+?>
+<div class="calmfox-smtp">
+    <?php if (!$block->isEnabled()): ?>
+        <div class="calmfox-smtp-status calmfox-smtp-status--unknown">
+            <p class="calmfox-smtp-status__headline">
+                <?= $escaper->escapeHtml(__('Sending through this module is switched off, so Magento is sending the way it did before.')) ?>
+            </p>
+            <p>
+                <a href="<?= $escaper->escapeUrl($block->getSettingsUrl()) ?>">
+                    <?= $escaper->escapeHtml(__('Open the mail sending settings')) ?>
+                </a>
+            </p>
+        </div>
+    <?php else: ?>
+        <div class="calmfox-smtp-status calmfox-smtp-status--<?= $escaper->escapeHtmlAttr($block->getStatusModifier()) ?>">
+            <p class="calmfox-smtp-status__label"><?= $escaper->escapeHtml($block->getStatusLabel()) ?></p>
+            <p class="calmfox-smtp-status__headline"><?= $escaper->escapeHtml($block->getHeadline()) ?></p>
+            <ul class="calmfox-smtp-status__lines">
+                <?php foreach ($block->getExplanation() as $line): ?>
+                    <li><?= $escaper->escapeHtml($line) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+
+        <div class="calmfox-smtp-columns">
+            <div class="calmfox-smtp-panel">
+                <h2><?= $escaper->escapeHtml(__('Check the connection')) ?></h2>
+                <div class="calmfox-smtp-action" data-calmfox-smtp-action="check"
+                     data-url="<?= $escaper->escapeUrl($block->getCheckUrl()) ?>">
+                    <button type="button" class="action-secondary">
+                        <span><?= $escaper->escapeHtml(__('Check now')) ?></span>
+                    </button>
+                    <p class="calmfox-smtp-action__note">
+                        <?= $escaper->escapeHtml(__('Opens a connection, raises encryption and logs in. It sends nothing, costs the provider nothing, and proves the connection rather than the delivery.')) ?>
+                    </p>
+                    <div class="calmfox-smtp-action__result" data-role="result"></div>
+                </div>
+            </div>
+
+            <div class="calmfox-smtp-panel">
+                <h2><?= $escaper->escapeHtml(__('Send a test message')) ?></h2>
+                <div class="calmfox-smtp-action" data-calmfox-smtp-action="test"
+                     data-url="<?= $escaper->escapeUrl($block->getTestUrl()) ?>">
+                    <input type="email" class="admin__control-text" data-role="recipient"
+                           value="<?= $escaper->escapeHtmlAttr($block->getTestRecipient()) ?>"
+                           placeholder="<?= $escaper->escapeHtmlAttr(__('somebody@example.com')) ?>"/>
+                    <button type="button" class="action-secondary">
+                        <span><?= $escaper->escapeHtml(__('Send it')) ?></span>
+                    </button>
+                    <p class="calmfox-smtp-action__note">
+                        <?= $escaper->escapeHtml(__('One real message, through the saved settings. This is the only way to learn anything about delivery.')) ?>
+                    </p>
+                    <div class="calmfox-smtp-action__result" data-role="result"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="calmfox-smtp-panel">
+            <h2><?= $escaper->escapeHtml(__('What is configured')) ?></h2>
+            <table class="data-grid calmfox-smtp-facts">
+                <tbody>
+                <?php foreach ($block->getFacts() as $label => $value): ?>
+                    <tr>
+                        <th><?= $escaper->escapeHtml($label) ?></th>
+                        <td><?= $escaper->escapeHtml($value) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+            <p>
+                <a href="<?= $escaper->escapeUrl($block->getSettingsUrl()) ?>">
+                    <?= $escaper->escapeHtml(__('Change the mail sending settings')) ?>
+                </a>
+                &nbsp;·&nbsp;
+                <a href="<?= $escaper->escapeUrl($block->getLogUrl()) ?>">
+                    <?= $escaper->escapeHtml(__('See what was sent')) ?>
+                </a>
+            </p>
+        </div>
+
+        <?php if ([] !== $block->getIssues()): ?>
+            <div class="calmfox-smtp-panel">
+                <h2><?= $escaper->escapeHtml(__('Worth fixing in the settings')) ?></h2>
+                <ul class="calmfox-smtp-issues">
+                    <?php foreach ($block->getIssues() as $issue): ?>
+                        <li class="calmfox-smtp-issues__item calmfox-smtp-issues__item--<?= $escaper->escapeHtmlAttr($issue['severity']) ?>">
+                            <?= $escaper->escapeHtml($issue['text']) ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
+        <div class="calmfox-smtp-panel">
+            <h2><?= $escaper->escapeHtml(__('Who is told when sending breaks')) ?></h2>
+            <ul class="calmfox-smtp-channels">
+                <?php foreach ($block->getChannels() as $channel): ?>
+                    <li><?= $escaper->escapeHtml($channel) ?></li>
+                <?php endforeach; ?>
+            </ul>
+            <p class="calmfox-smtp-note">
+                <?= $escaper->escapeHtml(__('A problem is reported once, again if its reason changes, and once more after a long silence. When it is over, that is reported too.')) ?>
+            </p>
+        </div>
+
+        <?php if (\count($storeViews) > 1): ?>
+            <div class="calmfox-smtp-panel">
+                <h2><?= $escaper->escapeHtml(__('Every store view')) ?></h2>
+                <table class="data-grid">
+                    <thead>
+                    <tr>
+                        <th><?= $escaper->escapeHtml(__('Store view')) ?></th>
+                        <th><?= $escaper->escapeHtml(__('State')) ?></th>
+                        <th><?= $escaper->escapeHtml(__('Server')) ?></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($storeViews as $row): ?>
+                        <tr>
+                            <td><?= $escaper->escapeHtml($row['name']) ?></td>
+                            <td class="calmfox-smtp-state calmfox-smtp-state--<?= $escaper->escapeHtmlAttr($row['modifier']) ?>">
+                                <?= $escaper->escapeHtml($row['label']) ?>
+                            </td>
+                            <td><?= $escaper->escapeHtml($row['endpoint']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+</div>
+<script>
+    require(['Calmfox_Smtp/js/config-actions'], function (actions) {
+        'use strict';
+        actions('[data-calmfox-smtp-action="check"]');
+        actions('[data-calmfox-smtp-action="test"]');
+    });
+</script>

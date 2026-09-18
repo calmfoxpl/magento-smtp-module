@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!-- The settings screen needs the module's stylesheet for the provider help panel and the two buttons. -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Calmfox_Smtp::css/smtp.css"/>
+    </head>
+</page>

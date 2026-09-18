@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+    The schedule is a setting rather than a number in this file, because how often to check is
+    exactly the sort of thing a shop has an opinion about: every quarter of an hour on a shop
+    that sends constantly, twice a day on one that sends a dozen messages a week. The check is
+    cheap — a connection and a login, no message — so the default is a quarter of an hour.
+
+    Pruning is nightly and deliberately at an odd minute: every module that runs at 0 3 * * *
+    runs at the same time as every other one.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <job name="calmfox_smtp_health" instance="Calmfox\Smtp\Cron\CheckHealth" method="execute">
+            <config_path>calmfox_smtp/health/cron_expression</config_path>
+        </job>
+        <job name="calmfox_smtp_log_prune" instance="Calmfox\Smtp\Cron\PruneLog" method="execute">
+            <schedule>23 3 * * *</schedule>
+        </job>
+    </group>
+</config>

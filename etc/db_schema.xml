@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!--
+    Two tables, and both are deliberately modest.
+
+    `calmfox_smtp_health` is one row per store view: the current verdict and the counters behind
+    it. It is a cache of a judgement, not a history, so it is overwritten rather than appended
+    to — a table that grew a row every fifteen minutes would be the module's own biggest table
+    within a year, and nobody would ever read the old rows.
+
+    `calmfox_smtp_log` is the history of messages, and it holds personal data: names, addresses,
+    order contents, the occasional password reset link. That is why the body is a separate,
+    optional column, why retention is short by default, and why the cron job that prunes it is
+    part of the module rather than an afterthought.
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="calmfox_smtp_health" resource="default" engine="innodb" comment="Calmfox SMTP: current sending health per store view">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" default="0" comment="Store view, 0 for the default configuration"/>
+        <column xsi:type="varchar" name="status" length="16" nullable="false" default="unknown" comment="unknown, ok, warn or fail"/>
+        <column xsi:type="varchar" name="cause" length="40" nullable="false" default="unknown" comment="Why sending is not working"/>
+        <column xsi:type="varchar" name="stage" length="20" nullable="false" default="" comment="How far the conversation got"/>
+        <column xsi:type="smallint" name="reply_code" unsigned="true" nullable="true" comment="The SMTP reply code, where there was one"/>
+        <column xsi:type="varchar" name="reply" length="255" nullable="false" default="" comment="What the server said, verbatim"/>
+        <column xsi:type="int" name="checked_at" unsigned="true" nullable="false" default="0" comment="When the connection was last checked"/>
+        <column xsi:type="int" name="duration_ms" unsigned="true" nullable="false" default="0" comment="How long that check took"/>
+        <column xsi:type="smallint" name="consecutive_failures" unsigned="true" nullable="false" default="0" comment="Failed checks in a row"/>
+        <column xsi:type="int" name="failing_since" unsigned="true" nullable="true" comment="When the current problem started"/>
+        <column xsi:type="int" name="last_ok_at" unsigned="true" nullable="true" comment="When sending last worked"/>
+        <column xsi:type="varchar" name="fingerprint" length="32" nullable="false" default="" comment="Stamp of the settings this verdict is about"/>
+        <column xsi:type="smallint" name="send_failures" unsigned="true" nullable="false" default="0" comment="Real messages that failed inside the window"/>
+        <column xsi:type="int" name="send_failures_since" unsigned="true" nullable="true" comment="When that window opened"/>
+        <column xsi:type="varchar" name="last_send_cause" length="40" nullable="true" comment="Why the last message failed"/>
+        <column xsi:type="varchar" name="last_send_error" length="500" nullable="false" default="" comment="What the server said about it"/>
+        <column xsi:type="int" name="last_sent_at" unsigned="true" nullable="true" comment="When a message last went out"/>
+        <column xsi:type="varchar" name="notified_cause" length="40" nullable="true" comment="What an administrator was last told about"/>
+        <column xsi:type="int" name="notified_at" unsigned="true" nullable="true" comment="When they were told"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="CALMFOX_SMTP_HEALTH_STORE_ID">
+            <column name="store_id"/>
+        </constraint>
+    </table>
+
+    <table name="calmfox_smtp_log" resource="default" engine="innodb" comment="Calmfox SMTP: messages the shop tried to send">
+        <column xsi:type="bigint" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="When the message was handed to the transport"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" default="0" comment="Store view the message belongs to"/>
+        <column xsi:type="varchar" name="outcome" length="16" nullable="false" default="sent" comment="sent, failed or suppressed"/>
+        <column xsi:type="varchar" name="provider" length="32" nullable="false" default="" comment="Which preset was in use"/>
+        <column xsi:type="varchar" name="endpoint" length="255" nullable="false" default="" comment="Server and port it went to"/>
+        <column xsi:type="varchar" name="from_address" length="255" nullable="false" default="" comment="Sender"/>
+        <column xsi:type="varchar" name="recipients" length="255" nullable="false" default="" comment="Recipients, shortened for the grid"/>
+        <column xsi:type="varchar" name="subject" length="255" nullable="false" default="" comment="Subject"/>
+        <column xsi:type="int" name="message_size" unsigned="true" nullable="false" default="0" comment="Size of the message in bytes"/>
+        <column xsi:type="int" name="duration_ms" unsigned="true" nullable="false" default="0" comment="How long the attempt took"/>
+        <column xsi:type="smallint" name="attempts" unsigned="true" nullable="false" default="1" comment="How many times it has been tried"/>
+        <column xsi:type="varchar" name="cause" length="40" nullable="true" comment="Why it failed"/>
+        <column xsi:type="text" name="error" nullable="true" comment="What the server said, with credentials removed"/>
+        <column xsi:type="longtext" name="raw_message" nullable="true" comment="The message itself, kept only while retention allows a resend"/>
+        <column xsi:type="int" name="resent_at" unsigned="true" nullable="true" comment="When it was last sent again from the panel"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <index referenceId="CALMFOX_SMTP_LOG_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+        <index referenceId="CALMFOX_SMTP_LOG_OUTCOME_CREATED_AT" indexType="btree">
+            <column name="outcome"/>
+            <column name="created_at"/>
+        </index>
+        <index referenceId="CALMFOX_SMTP_LOG_STORE_ID" indexType="btree">
+            <column name="store_id"/>
+        </index>
+    </table>
+</schema>

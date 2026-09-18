@@ -1,0 +1,111 @@
+/*
+ * Plain admin styling: the panel's own spacing and type, with one colour carrying the verdict.
+ * No layout framework and no icons — a page somebody reads while a shop is not sending should
+ * load whatever else is broken.
+ */
+
+.calmfox-smtp-status {
+    border-left: 4px solid #ccc;
+    padding: 1.4rem 1.8rem;
+    margin: 0 0 2rem;
+    background: #f8f8f8;
+}
+
+.calmfox-smtp-status--ok { border-left-color: #298e29; background: #f1f8f1; }
+.calmfox-smtp-status--warn { border-left-color: #eb5202; background: #fdf6f1; }
+.calmfox-smtp-status--fail { border-left-color: #e22626; background: #fdf0f0; }
+.calmfox-smtp-status--unknown { border-left-color: #777; }
+
+.calmfox-smtp-status__label {
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-size: 1.1rem;
+    margin: 0 0 .4rem;
+    color: #555;
+}
+
+.calmfox-smtp-status__headline {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin: 0 0 .8rem;
+}
+
+.calmfox-smtp-status__lines,
+.calmfox-smtp-channels,
+.calmfox-smtp-issues {
+    margin: 0;
+    padding-left: 1.8rem;
+}
+
+.calmfox-smtp-status__lines li,
+.calmfox-smtp-channels li,
+.calmfox-smtp-issues li { margin: .3rem 0; }
+
+.calmfox-smtp-issues__item--error { color: #e22626; }
+.calmfox-smtp-issues__item--warning { color: #8f5000; }
+
+.calmfox-smtp-columns { display: flex; gap: 2rem; flex-wrap: wrap; }
+.calmfox-smtp-columns > .calmfox-smtp-panel { flex: 1 1 28rem; }
+
+.calmfox-smtp-panel {
+    background: #fff;
+    border: 1px solid #e3e3e3;
+    padding: 1.6rem 1.8rem;
+    margin: 0 0 2rem;
+}
+
+.calmfox-smtp-panel--bad { border-color: #e9b7b7; }
+.calmfox-smtp-panel h2 { font-size: 1.6rem; margin: 0 0 1rem; }
+
+.calmfox-smtp-facts th {
+    text-align: left;
+    width: 22rem;
+    font-weight: 600;
+    padding: .6rem 1rem .6rem 0;
+    vertical-align: top;
+}
+
+.calmfox-smtp-facts td { padding: .6rem 0; }
+
+.calmfox-smtp-note { color: #555; margin: 1rem 0 0; }
+
+.calmfox-smtp-action__note { color: #555; margin: .8rem 0; max-width: 60rem; }
+.calmfox-smtp-action__result { margin-top: 1rem; }
+.calmfox-smtp-action__result--ok strong { color: #298e29; }
+.calmfox-smtp-action__result--bad strong { color: #e22626; }
+.calmfox-smtp-action__lines { margin: .5rem 0 0; padding-left: 1.8rem; }
+.calmfox-smtp-action input[data-role="recipient"] { max-width: 26rem; margin-right: .6rem; }
+
+.calmfox-smtp-state--ok { color: #298e29; }
+.calmfox-smtp-state--warn { color: #8f5000; }
+.calmfox-smtp-state--fail { color: #e22626; }
+
+.calmfox-smtp-source {
+    max-height: 40rem;
+    overflow: auto;
+    background: #f5f5f5;
+    padding: 1.2rem;
+    font-size: 1.1rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.calmfox-smtp-help {
+    background: #f5f8fa;
+    border: 1px solid #d6e2ea;
+    padding: 1.2rem 1.6rem;
+    margin: 0 0 1rem;
+}
+
+.calmfox-smtp-help__hints { margin: 0; padding-left: 1.8rem; }
+.calmfox-smtp-help__hints li { margin: .3rem 0; }
+.calmfox-smtp-help__hosts, .calmfox-smtp-help__docs, .calmfox-smtp-help__note { margin: .8rem 0 0; }
+
+.calmfox-smtp-dashboard {
+    border-left: 4px solid #e22626;
+    background: #fdf0f0;
+    padding: 1.2rem 1.6rem;
+    margin: 0 0 2rem;
+}
+
+.calmfox-smtp-dashboard ul { margin: .6rem 0; padding-left: 1.8rem; }

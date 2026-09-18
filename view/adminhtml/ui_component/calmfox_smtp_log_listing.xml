@@ -1,0 +1,160 @@
+<?xml version="1.0"?>
+<!--
+    An ordinary Magento listing, which is the point: the filters, the paging, the column controls
+    and the CSV export are the platform's rather than ours, and behave the way every other grid
+    in the panel behaves.
+
+    The columns are chosen for one question — "did this customer get their e-mail?" — so the
+    default sort is newest first and the recipient and the outcome are next to each other. The
+    message body is not a column: it is on the entry's own page, where opening it is a decision.
+-->
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">calmfox_smtp_log_listing.calmfox_smtp_log_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <spinner>calmfox_smtp_log_columns</spinner>
+        <deps>
+            <dep>calmfox_smtp_log_listing.calmfox_smtp_log_listing_data_source</dep>
+        </deps>
+    </settings>
+
+    <dataSource name="calmfox_smtp_log_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Calmfox_Smtp::log</aclResource>
+        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider" name="calmfox_smtp_log_listing_data_source">
+            <settings>
+                <requestFieldName>entity_id</requestFieldName>
+                <primaryFieldName>entity_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filterSearch name="fulltext"/>
+        <filters name="listing_filters"/>
+        <massaction name="listing_massaction">
+            <action name="delete">
+                <settings>
+                    <confirm>
+                        <message translate="true">Deleting these entries cannot be undone. Any message body they still hold goes with them, so a failed message deleted here can no longer be sent again.</message>
+                        <title translate="true">Delete the selected entries?</title>
+                    </confirm>
+                    <url path="calmfox_smtp/log/massDelete"/>
+                    <type>delete</type>
+                    <label translate="true">Delete</label>
+                </settings>
+            </action>
+        </massaction>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+
+    <columns name="calmfox_smtp_log_columns">
+        <settings>
+            <childDefaults>
+                <param name="fieldAction" xsi:type="array">
+                    <item name="provider" xsi:type="string">calmfox_smtp_log_listing.calmfox_smtp_log_listing.calmfox_smtp_log_columns.actions</item>
+                    <item name="target" xsi:type="string">applyAction</item>
+                    <item name="params" xsi:type="array">
+                        <item name="0" xsi:type="string">view</item>
+                        <item name="1" xsi:type="string">${ $.$data.rowIndex }</item>
+                    </item>
+                </param>
+            </childDefaults>
+        </settings>
+
+        <selectionsColumn name="ids">
+            <settings>
+                <indexField>entity_id</indexField>
+            </settings>
+        </selectionsColumn>
+
+        <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date" component="Magento_Ui/js/grid/columns/date" sortOrder="10">
+            <settings>
+                <filter>dateRange</filter>
+                <dataType>date</dataType>
+                <label translate="true">Sent at</label>
+                <sorting>desc</sorting>
+            </settings>
+        </column>
+
+        <column name="outcome" component="Magento_Ui/js/grid/columns/select" sortOrder="20">
+            <settings>
+                <options class="Calmfox\Smtp\Model\Config\Source\Outcome"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Outcome</label>
+            </settings>
+        </column>
+
+        <column name="recipients" sortOrder="30">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">To</label>
+            </settings>
+        </column>
+
+        <column name="subject" sortOrder="40">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Subject</label>
+            </settings>
+        </column>
+
+        <column name="from_address" sortOrder="50">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">From</label>
+            </settings>
+        </column>
+
+        <column name="endpoint" sortOrder="60">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Through</label>
+            </settings>
+        </column>
+
+        <column name="error" sortOrder="70">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">What the server said</label>
+                <visible>false</visible>
+            </settings>
+        </column>
+
+        <column name="attempts" class="Magento\Ui\Component\Listing\Columns\Column" sortOrder="80">
+            <settings>
+                <filter>textRange</filter>
+                <dataType>number</dataType>
+                <label translate="true">Attempts</label>
+                <visible>false</visible>
+            </settings>
+        </column>
+
+        <column name="duration_ms" class="Magento\Ui\Component\Listing\Columns\Column" sortOrder="90">
+            <settings>
+                <filter>textRange</filter>
+                <dataType>number</dataType>
+                <label translate="true">Took (ms)</label>
+                <visible>false</visible>
+            </settings>
+        </column>
+
+        <actionsColumn name="actions" class="Calmfox\Smtp\Ui\Component\Listing\Column\Actions" sortOrder="100">
+            <settings>
+                <indexField>entity_id</indexField>
+                <label translate="true">Action</label>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

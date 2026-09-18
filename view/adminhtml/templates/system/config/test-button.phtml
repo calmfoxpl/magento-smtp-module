@@ -1,0 +1,19 @@
+<?php
+/**
+ * @var \Calmfox\Smtp\Block\Adminhtml\System\Config\TestButton $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div class="calmfox-smtp-action" data-calmfox-smtp-action="test" data-url="<?= $escaper->escapeUrl($block->getAjaxUrl()) ?>">
+    <?= /* @noEscape */ $block->getButtonHtml() ?>
+    <p class="calmfox-smtp-action__note">
+        <?= $escaper->escapeHtml(__('Sends one real message through the saved settings. Save first, and then look in that mailbox: whether it lands in the inbox or in the spam folder is the answer to a different question, about the domain\'s DNS records.')) ?>
+    </p>
+    <div class="calmfox-smtp-action__result" data-role="result"></div>
+</div>
+<script>
+    require(['Calmfox_Smtp/js/config-actions'], function (actions) {
+        'use strict';
+        actions('[data-calmfox-smtp-action="test"]');
+    });
+</script>

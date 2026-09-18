@@ -1,0 +1,19 @@
+<?php
+/**
+ * @var \Calmfox\Smtp\Block\Adminhtml\System\Config\CheckButton $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div class="calmfox-smtp-action" data-calmfox-smtp-action="check" data-url="<?= $escaper->escapeUrl($block->getAjaxUrl()) ?>">
+    <?= /* @noEscape */ $block->getButtonHtml() ?>
+    <p class="calmfox-smtp-action__note">
+        <?= $escaper->escapeHtml(__('Checks the settings as they are saved, so save first. It opens a connection, raises encryption and logs in, and sends nothing.')) ?>
+    </p>
+    <div class="calmfox-smtp-action__result" data-role="result"></div>
+</div>
+<script>
+    require(['Calmfox_Smtp/js/config-actions'], function (actions) {
+        'use strict';
+        actions('[data-calmfox-smtp-action="check"]');
+    });
+</script>

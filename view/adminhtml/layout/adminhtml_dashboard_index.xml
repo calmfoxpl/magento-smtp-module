@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+    At the top of the dashboard, and only when sending is broken. The block renders nothing at
+    all otherwise, so a working shop sees no trace of it.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Calmfox_Smtp::css/smtp.css"/>
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <block class="Calmfox\Smtp\Block\Adminhtml\DashboardWidget" name="calmfox_smtp_dashboard" template="Calmfox_Smtp::dashboard-widget.phtml" before="-"/>
+        </referenceContainer>
+    </body>
+</page>

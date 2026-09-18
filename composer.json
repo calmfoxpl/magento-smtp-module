@@ -1,0 +1,71 @@
+{
+    "name": "calmfox/magento-smtp-module",
+    "description": "SMTP for Magento 2 with ready-made settings for the popular e-mail providers, a log of what was sent, a periodic health check of the connection and a warning in the panel when the shop stops being able to send.",
+    "type": "magento2-module",
+    "keywords": [
+        "magento",
+        "magento2",
+        "magento2-module",
+        "smtp",
+        "email",
+        "mail",
+        "transactional",
+        "deliverability",
+        "health-check",
+        "monitoring"
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/calmfoxpl/magento-smtp-module",
+    "authors": [
+        {
+            "name": "Calmfox",
+            "homepage": "https://calmfox.pl"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/calmfoxpl/magento-smtp-module/issues",
+        "source": "https://github.com/calmfoxpl/magento-smtp-module",
+        "security": "https://github.com/calmfoxpl/magento-smtp-module/security/advisories/new"
+    },
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "laminas/laminas-mail": "^2.19",
+        "magento/framework": "^103.0",
+        "magento/module-backend": "^102.0",
+        "magento/module-config": "^101.2",
+        "magento/module-cron": "^100.4",
+        "magento/module-email": "^101.1",
+        "magento/module-store": "^101.1",
+        "magento/module-ui": "^101.2",
+        "psr/log": "^1.1 || ^2.0 || ^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5 || ^11.0 || ^12.0"
+    },
+    "suggest": {
+        "calmfox/watch-magento": "Adds the same health check to an outside monitor, so a shop nobody is looking at is still watched"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Calmfox\\Smtp\\": ""
+        },
+        "exclude-from-classmap": [
+            "tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Calmfox\\Smtp\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

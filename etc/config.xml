@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!--
+    The defaults, chosen so that installing the module changes nothing until somebody fills in a
+    server: sending stays with Magento, and there is no provider until one is picked.
+
+    Everything that is on by default is on because it costs nothing and prevents the failure this
+    module exists for: the check itself, the warning in the panel, and the log with a modest
+    retention and without message bodies — a log that kept every order confirmation by default
+    would quietly turn into the shop's biggest pile of personal data.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <calmfox_smtp>
+            <general>
+                <enabled>0</enabled>
+            </general>
+            <server>
+                <provider>custom</provider>
+                <host/>
+                <port>587</port>
+                <encryption>tls</encryption>
+                <auth>auto</auth>
+                <username/>
+                <password/>
+                <timeout>5</timeout>
+                <verify_certificate>1</verify_certificate>
+            </server>
+            <sender>
+                <from_name/>
+                <from_email/>
+                <return_path/>
+            </sender>
+            <health>
+                <enabled>1</enabled>
+                <cron_expression>*/15 * * * *</cron_expression>
+                <interval>900</interval>
+                <failed_checks>2</failed_checks>
+                <send_failures>3</send_failures>
+                <send_window>1800</send_window>
+                <repeat_after>21600</repeat_after>
+            </health>
+            <alerts>
+                <panel>1</panel>
+                <email>1</email>
+                <recipient/>
+                <webhook>0</webhook>
+                <webhook_url/>
+            </alerts>
+            <log>
+                <enabled>1</enabled>
+                <store_body>0</store_body>
+                <retention_days>30</retention_days>
+            </log>
+            <test>
+                <recipient/>
+            </test>
+        </calmfox_smtp>
+    </default>
+</config>

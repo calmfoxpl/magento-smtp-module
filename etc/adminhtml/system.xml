@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<!--
+    One screen, in the order somebody fills it in: pick a provider, paste the two credentials,
+    press the button that says whether it works.
+
+    The comments under the fields are part of the module rather than decoration. Every one of
+    them exists because of a support ticket that would not have been written if the sentence had
+    been on the screen: which of a provider's several passwords this field wants, why port 25 is
+    a bad idea on a hosting account, what the difference between the two encryption choices
+    actually is, and what a green health check does and does not prove.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="calmfox_smtp" translate="label" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>E-mail sending (SMTP)</label>
+            <tab>advanced</tab>
+            <resource>Calmfox_Smtp::config</resource>
+
+            <group id="general" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Sending</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Send through this module</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>With this off, Magento sends the way it did before the module was installed. Nothing here is lost, and turning it back on restores it.</comment>
+                </field>
+            </group>
+
+            <group id="server" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Server</label>
+                <field id="provider" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Provider</label>
+                    <source_model>Calmfox\Smtp\Model\Config\Source\Provider</source_model>
+                    <comment>Picking one fills in the server, the port and the encryption, and explains what that provider means by the two credential fields.</comment>
+                </field>
+                <field id="provider_help" translate="label" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>What this provider expects</label>
+                    <frontend_model>Calmfox\Smtp\Block\Adminhtml\System\Config\ProviderHelp</frontend_model>
+                </field>
+                <field id="host" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Server</label>
+                    <comment>A host name, without a scheme. A whole address pasted here is understood and tidied up.</comment>
+                </field>
+                <field id="port" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Port</label>
+                    <validate>validate-digits validate-not-negative-number</validate>
+                    <comment>587 for STARTTLS, 465 for TLS from the first byte. Port 25 is blocked outbound by most hosting companies.</comment>
+                </field>
+                <field id="encryption" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Encryption</label>
+                    <source_model>Calmfox\Smtp\Model\Config\Source\Encryption</source_model>
+                    <comment>This has to match the port. The two together are the commonest reason a correct password looks like a dead server.</comment>
+                </field>
+                <field id="auth" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Log in with</label>
+                    <source_model>Calmfox\Smtp\Model\Config\Source\AuthMethod</source_model>
+                    <comment>Leave this alone unless a provider asks for something specific. The health check reports what the server offers.</comment>
+                </field>
+                <field id="username" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>User name</label>
+                    <depends>
+                        <field id="auth" separator=",">auto,login,plain,crammd5</field>
+                    </depends>
+                </field>
+                <field id="password" translate="label comment" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Password</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment>Stored encrypted with the installation's own key. It is never written to the log, to an alert or to the report.</comment>
+                    <depends>
+                        <field id="auth" separator=",">auto,login,plain,crammd5</field>
+                    </depends>
+                </field>
+                <field id="timeout" translate="label comment" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Give up after</label>
+                    <validate>validate-digits validate-not-negative-number</validate>
+                    <comment>Seconds to wait for the server. Five is enough for any provider in the list; a longer wait only makes a checkout page slower on the day the server is down.</comment>
+                </field>
+                <field id="verify_certificate" translate="label comment" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Check the certificate</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Leave this on. Turning it off makes an untrusted certificate work, and makes an intercepted connection work too.</comment>
+                </field>
+                <field id="check" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Check the connection</label>
+                    <frontend_model>Calmfox\Smtp\Block\Adminhtml\System\Config\CheckButton</frontend_model>
+                </field>
+            </group>
+
+            <group id="sender" translate="label comment" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Sender</label>
+                <comment>Only needed where the provider insists. A Magento installation has sender addresses in half a dozen settings and in any number of modules, and a provider that only accepts one of them will refuse the rest.</comment>
+                <field id="from_email" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Always send from</label>
+                    <validate>validate-email</validate>
+                    <comment>Overrides the sender of every message. Leave empty to keep whatever each message already says.</comment>
+                </field>
+                <field id="from_name" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Shown as</label>
+                </field>
+                <field id="return_path" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Send bounces to</label>
+                    <validate>validate-email</validate>
+                    <comment>The envelope sender, which is where undeliverable mail comes back to. A different thing from the address above, and the one providers check.</comment>
+                </field>
+            </group>
+
+            <group id="health" translate="label comment" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Health check</label>
+                <comment>The check opens a connection, raises encryption and logs in, then says goodbye without sending anything. It costs the provider nothing and counts against no sending limit — and it proves the connection, never the delivery.</comment>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Check the connection regularly</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cron_expression" translate="label comment" type="text" sortOrder="20" showInDefault="1" canRestore="1">
+                    <label>How often</label>
+                    <comment>A cron expression. Every quarter of an hour by default, which is about as long as anybody wants to be unable to send without knowing it.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="interval" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Reuse a verdict for</label>
+                    <validate>validate-digits</validate>
+                    <comment>Seconds. Keeps a dashboard, a cron run and a console command in the same minute from opening three connections to learn the same thing. The button on this page always checks now.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="failed_checks" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Failed checks before warning</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <comment>Mail servers have bad minutes. A refused password is reported at once whatever this says, because that will not fix itself.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="send_failures" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Failed messages before warning</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <comment>Real messages that could not be sent. This is the ground truth: a shop whose order confirmations are failing is broken whatever a connection test says.</comment>
+                </field>
+                <field id="send_window" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Counted within</label>
+                    <validate>validate-digits</validate>
+                    <comment>Seconds. Three failures in half an hour is a broken shop; three over a fortnight is three bad addresses.</comment>
+                </field>
+                <field id="repeat_after" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Say it again after</label>
+                    <validate>validate-digits</validate>
+                    <comment>Seconds of silence before the same problem is reported a second time. Six hours by default: often enough not to be forgotten, rarely enough not to be filtered.</comment>
+                </field>
+            </group>
+
+            <group id="alerts" translate="label comment" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Who is told</label>
+                <comment>A problem is reported once, again if its reason changes, and once more after a long silence. When it is over, that is reported too.</comment>
+                <field id="panel" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>A bar across the admin panel</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>The channel that always works, because somebody logs in to process orders anyway.</comment>
+                </field>
+                <field id="email" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>An e-mail</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Sent through the server's own local mail command rather than the provider, because the provider is what is not working. That makes it a second chance rather than a guarantee: local mail is often unconfigured, and often lands in a spam folder.</comment>
+                </field>
+                <field id="recipient" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>To</label>
+                    <validate>validate-email</validate>
+                    <comment>Empty means the shop's general contact address.</comment>
+                    <depends>
+                        <field id="email">1</field>
+                    </depends>
+                </field>
+                <field id="webhook" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>A webhook</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>For a chat room or a monitoring system. Use this where nobody opens the panel daily.</comment>
+                </field>
+                <field id="webhook_url" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Webhook address</label>
+                    <comment>An https address. A JSON body with a text field is posted to it, which is what Slack, Teams and Discord all accept.</comment>
+                    <depends>
+                        <field id="webhook">1</field>
+                    </depends>
+                </field>
+            </group>
+
+            <group id="log" translate="label comment" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Log</label>
+                <comment>Outgoing mail is customer correspondence: names, addresses, order contents, the occasional password reset link. The defaults keep as little of it as is still useful.</comment>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Keep a log of what was sent</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Sender, recipients, subject and what the server said. This is what answers "did the customer get it?" without guessing.</comment>
+                </field>
+                <field id="store_body" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Keep the message body</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Only for messages that failed, and only while they are within the retention — this is what makes sending them again possible once the settings are fixed. It is also the one setting here that stores whole customer e-mails.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="retention_days" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Keep entries for</label>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                    <comment>Days. Entries older than this are deleted nightly, whether the log is switched on or not — a log turned off last month should not still be holding last month's mail.</comment>
+                </field>
+            </group>
+
+            <group id="test" translate="label comment" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Test message</label>
+                <comment>The health check proves a connection. Only a real message proves delivery, and only the mailbox it arrives in can say whether it landed in the inbox or the spam folder.</comment>
+                <field id="recipient" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Send a test message to</label>
+                    <validate>validate-email</validate>
+                    <comment>Empty means the address warnings go to.</comment>
+                </field>
+                <field id="send" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Send it</label>
+                    <frontend_model>Calmfox\Smtp\Block\Adminhtml\System\Config\TestButton</frontend_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

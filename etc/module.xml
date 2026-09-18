@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+    Loads after Magento_Email, because the transport this module puts in front of Magento's own
+    has to be the last word on how a message leaves the shop, and after Magento_Store, because
+    every setting is read per store view. Magento_Cron carries the periodic health check.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+    <module name="Calmfox_Smtp">
+        <sequence>
+            <module name="Magento_Backend"/>
+            <module name="Magento_Store"/>
+            <module name="Magento_Email"/>
+            <module name="Magento_Cron"/>
+        </sequence>
+    </module>
+</config>

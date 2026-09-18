@@ -1,0 +1,17 @@
+<?php
+/**
+ * @var \Calmfox\Smtp\Block\Adminhtml\DashboardWidget $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div class="calmfox-smtp-dashboard">
+    <strong><?= $escaper->escapeHtml($block->getHeadline()) ?></strong>
+    <ul>
+        <?php foreach ($block->getExplanation() as $line): ?>
+            <li><?= $escaper->escapeHtml($line) ?></li>
+        <?php endforeach; ?>
+    </ul>
+    <a href="<?= $escaper->escapeUrl($block->getReportUrl()) ?>">
+        <?= $escaper->escapeHtml(__('Open the mail health report')) ?>
+    </a>
+</div>

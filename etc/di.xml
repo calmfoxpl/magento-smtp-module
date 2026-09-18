@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!--
+    The whole assembly, in one file. Three decisions are worth explaining.
+
+    1. The preference on TransportInterface is how this module gets in front of every outgoing
+       message, whoever sends it — Magento, a payment module, a newsletter extension. Our
+       transport decorates Magento's own rather than replacing it: with the module switched off,
+       or configured too incompletely to send, Magento's transport does exactly what it did
+       before, so uninstalling is a setting rather than a deployment.
+    2. The system message is added to Magento's own notification list, which is what puts the
+       red bar on every admin page. It reads the stored verdict; it never dials a mail server,
+       because an admin page must not wait on one.
+    3. The log grid is an ordinary UI component listing over the log table, so the grid, its
+       filters and its export are Magento's rather than ours.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Magento\Framework\Mail\TransportInterface" type="Calmfox\Smtp\Model\Mail\Transport"/>
+
+    <type name="Magento\Framework\Notification\MessageList">
+        <arguments>
+            <argument name="messages" xsi:type="array">
+                <item name="calmfoxSmtpHealth" xsi:type="string">Calmfox\Smtp\Model\Notification\SystemMessage</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <virtualType name="Calmfox\Smtp\Model\ResourceModel\LogEntry\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">calmfox_smtp_log</argument>
+            <argument name="resourceModel" xsi:type="string">Calmfox\Smtp\Model\ResourceModel\LogEntry</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="calmfox_smtp_log_listing_data_source" xsi:type="string">Calmfox\Smtp\Model\ResourceModel\LogEntry\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        A Curl client of its own. Magento shares instances, and the client remembers headers and
+        timeouts between calls: a shared one would eventually send the shop's alert payload with
+        somebody else's headers on it.
+    -->
+    <virtualType name="Calmfox\Smtp\Model\Alert\WebhookHttpClient" type="Magento\Framework\HTTP\Client\Curl"/>
+
+    <type name="Calmfox\Smtp\Model\Alert\WebhookChannel">
+        <arguments>
+            <argument name="curl" xsi:type="object">Calmfox\Smtp\Model\Alert\WebhookHttpClient</argument>
+        </arguments>
+    </type>
+
+    <!-- Every action on the screens has an equivalent in the console. -->
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="calmfox_smtp_health" xsi:type="object">Calmfox\Smtp\Console\Command\HealthCommand</item>
+                <item name="calmfox_smtp_test" xsi:type="object">Calmfox\Smtp\Console\Command\TestCommand</item>
+                <item name="calmfox_smtp_log_prune" xsi:type="object">Calmfox\Smtp\Console\Command\PruneLogCommand</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

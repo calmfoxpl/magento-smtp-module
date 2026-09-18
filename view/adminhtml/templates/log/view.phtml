@@ -1,0 +1,63 @@
+<?php
+/**
+ * @var \Calmfox\Smtp\Block\Adminhtml\LogEntry $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$entry = $block->getEntry();
+?>
+<div class="calmfox-smtp">
+    <?php if (null === $entry): ?>
+        <p><?= $escaper->escapeHtml(__('That log entry is gone. Entries are deleted once they are past their retention.')) ?></p>
+    <?php else: ?>
+        <div class="calmfox-smtp-panel">
+            <table class="data-grid calmfox-smtp-facts">
+                <tbody>
+                <?php foreach ($block->getFacts() as $label => $value): ?>
+                    <tr>
+                        <th><?= $escaper->escapeHtml($label) ?></th>
+                        <td><?= $escaper->escapeHtml($value) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <?php if ([] !== $block->getFailureLines()): ?>
+            <div class="calmfox-smtp-panel calmfox-smtp-panel--bad">
+                <h2><?= $escaper->escapeHtml(__('Why it did not go out')) ?></h2>
+                <ul>
+                    <?php foreach ($block->getFailureLines() as $line): ?>
+                        <li><?= $escaper->escapeHtml($line) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+                <?php if ('' !== $block->getResendNote()): ?>
+                    <p class="calmfox-smtp-note"><?= $escaper->escapeHtml($block->getResendNote()) ?></p>
+                <?php endif; ?>
+                <?php if ($block->canResend()): ?>
+                    <form action="<?= $escaper->escapeUrl($block->getResendUrl()) ?>" method="post">
+                        <?= $block->getBlockHtml('formkey') ?>
+                        <button type="submit" class="action-primary">
+                            <span><?= $escaper->escapeHtml(__('Send it again')) ?></span>
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ('' !== (string) $entry->getRawMessage()): ?>
+            <div class="calmfox-smtp-panel">
+                <h2><?= $escaper->escapeHtml(__('The message as it was to be sent')) ?></h2>
+                <p class="calmfox-smtp-note">
+                    <?= $escaper->escapeHtml(__('Shown as source rather than rendered, because this page is for finding out what happened.')) ?>
+                </p>
+                <pre class="calmfox-smtp-source"><?= $escaper->escapeHtml((string) $entry->getRawMessage()) ?></pre>
+            </div>
+        <?php endif; ?>
+
+        <p>
+            <a href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>">
+                <?= $escaper->escapeHtml(__('Back to the messages')) ?>
+            </a>
+        </p>
+    <?php endif; ?>
+</div>
