@@ -68,7 +68,7 @@ final class AlertPolicyTest extends TestCase
     /** A warning nobody hears the end of is a warning ignored next time. */
     public function testRecoveryIsReportedToWhoeverWasWarned(): void
     {
-        $recovered = new HealthState(status: Status::OK, cause: Cause::OK, checkedAt: self::NOON)
+        $recovered = (new HealthState(status: Status::OK, cause: Cause::OK, checkedAt: self::NOON))
             ->notified(Cause::AUTH_REJECTED, self::NOON - 3600);
 
         $alert = (new AlertPolicy())->decide($recovered, self::NOON);
