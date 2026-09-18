@@ -52,22 +52,30 @@ class Inspect extends Action implements HttpPostActionInterface
         }
 
         $verdict = $this->domains->refresh($storeId);
-        $lines = [];
+        if (null === $verdict) {
+            // Only reachable if the switch was turned off between the two calls above.
+            return $this->results->create()->setData([
+                'ok' => false,
+                'headline' => (string) __('Checking the sender domain is switched off.'),
+                'lines' => [],
+            ]);
+        }
 
-        foreach ($verdict?->issues ?? [] as $issue) {
+        $lines = [];
+        foreach ($verdict->issues as $issue) {
             $lines[] = (string) $this->wording->issue($issue);
         }
         foreach ($this->suggestionLines($storeId) as $line) {
             $lines[] = $line;
         }
 
-        $atRisk = true === $verdict?->isDeliverabilityAtRisk();
+        $atRisk = $verdict->isDeliverabilityAtRisk();
 
         return $this->results->create()->setData([
             'ok' => !$atRisk,
             'headline' => $atRisk
-                ? (string) $this->wording->deliverabilityHeadline($verdict?->domain)
-                : (string) $this->headline($verdict?->domain),
+                ? (string) $this->wording->deliverabilityHeadline($verdict->domain)
+                : (string) $this->headline($verdict->domain),
             'lines' => array_values(array_unique($lines)),
         ]);
     }
