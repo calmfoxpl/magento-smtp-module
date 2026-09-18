@@ -46,6 +46,9 @@
                 <webhook>0</webhook>
                 <webhook_url/>
             </alerts>
+            <dns>
+                <enabled>1</enabled>
+            </dns>
             <log>
                 <enabled>1</enabled>
                 <store_body>0</store_body>

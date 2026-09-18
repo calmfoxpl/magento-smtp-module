@@ -16,5 +16,14 @@
         <job name="calmfox_smtp_log_prune" instance="Calmfox\Smtp\Cron\PruneLog" method="execute">
             <schedule>23 3 * * *</schedule>
         </job>
+        <!--
+            The sender domain, four times a day. A different clock from the connection check on
+            purpose: a refused password matters within the quarter hour, while an SPF record that
+            does not list the provider has usually been wrong for weeks. Having the answer ready
+            is what lets every page in the panel show it without waiting on a nameserver.
+        -->
+        <job name="calmfox_smtp_dns" instance="Calmfox\Smtp\Cron\CheckDomain" method="execute">
+            <schedule>41 */6 * * *</schedule>
+        </job>
     </group>
 </config>

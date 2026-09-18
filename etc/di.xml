@@ -16,10 +16,23 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Magento\Framework\Mail\TransportInterface" type="Calmfox\Smtp\Model\Mail\Transport"/>
 
+    <!--
+        The core asks DNS through an interface so that its reasoning can be tested against
+        written-down zones; this is the only implementation, and it is the system resolver.
+    -->
+    <preference for="Calmfox\Smtp\Core\Dns\Resolver" type="Calmfox\Smtp\Model\Dns\PhpResolver"/>
+
+    <!--
+        Two messages, in two colours, on purpose: "cannot send" is critical and somebody has to
+        act within the hour, while "what the domain publishes will cost you delivered mail" is a
+        warning for whoever looks after the DNS. One colour for both would train an
+        administrator to ignore the pair of them.
+    -->
     <type name="Magento\Framework\Notification\MessageList">
         <arguments>
             <argument name="messages" xsi:type="array">
                 <item name="calmfoxSmtpHealth" xsi:type="string">Calmfox\Smtp\Model\Notification\SystemMessage</item>
+                <item name="calmfoxSmtpDeliverability" xsi:type="string">Calmfox\Smtp\Model\Notification\DeliverabilityMessage</item>
             </argument>
         </arguments>
     </type>

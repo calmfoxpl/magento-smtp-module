@@ -88,6 +88,48 @@ $storeViews = $block->getStoreViews();
             </p>
         </div>
 
+        <?php if ($block->isDomainCheckEnabled()): ?>
+            <?php $domain = $block->getDomainVerdict(); ?>
+            <div class="calmfox-smtp-panel <?= null !== $domain && $domain->isDeliverabilityAtRisk() ? 'calmfox-smtp-panel--warn' : '' ?>">
+                <h2><?= $escaper->escapeHtml(__('Will the mail be believed')) ?></h2>
+                <p class="calmfox-smtp-status__headline"><?= $escaper->escapeHtml($block->getDomainHeadline()) ?></p>
+
+                <?php if ([] !== $block->getDomainFacts()): ?>
+                    <table class="data-grid calmfox-smtp-facts">
+                        <tbody>
+                        <?php foreach ($block->getDomainFacts() as $label => $value): ?>
+                            <tr>
+                                <th><?= $escaper->escapeHtml($label) ?></th>
+                                <td><?= $escaper->escapeHtml($value) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+
+                <?php if ([] !== $block->getDomainIssues()): ?>
+                    <ul class="calmfox-smtp-issues">
+                        <?php foreach ($block->getDomainIssues() as $issue): ?>
+                            <li class="calmfox-smtp-issues__item calmfox-smtp-issues__item--<?= $escaper->escapeHtmlAttr($issue['severity']) ?>">
+                                <?= $escaper->escapeHtml($issue['text']) ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+
+                <div class="calmfox-smtp-action" data-calmfox-smtp-action="dns"
+                     data-url="<?= $escaper->escapeUrl($block->getDomainUrl()) ?>">
+                    <button type="button" class="action-secondary">
+                        <span><?= $escaper->escapeHtml(__('Check the sender domain now')) ?></span>
+                    </button>
+                    <p class="calmfox-smtp-action__note">
+                        <?= $escaper->escapeHtml(__('Reads SPF, DKIM and DMARC. This is the half of sending that a connection check cannot see: whether a receiving server will believe the shop.')) ?>
+                    </p>
+                    <div class="calmfox-smtp-action__result" data-role="result"></div>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <?php if ([] !== $block->getIssues()): ?>
             <div class="calmfox-smtp-panel">
                 <h2><?= $escaper->escapeHtml(__('Worth fixing in the settings')) ?></h2>
@@ -145,5 +187,6 @@ $storeViews = $block->getStoreViews();
         'use strict';
         actions('[data-calmfox-smtp-action="check"]');
         actions('[data-calmfox-smtp-action="test"]');
+        actions('[data-calmfox-smtp-action="dns"]');
     });
 </script>

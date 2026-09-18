@@ -161,6 +161,21 @@ class Wording
             IssueCode::CERTIFICATE_CHECK_OFF => __('The certificate is not being checked, so nothing proves the server is the one it claims to be.'),
             IssueCode::FROM_EMAIL_INVALID, IssueCode::RETURN_PATH_INVALID => __('%1 is not an e-mail address.', ...$parameters),
             IssueCode::MAGENTO_SMTP_ALSO_CONFIGURED => __('Magento\'s own mail settings point at %1. They are ignored while this module is on, but they will mislead whoever reads them next.', ...$parameters),
+
+            // What the sender domain publishes. These never say "broken": the shop is sending,
+            // and the decision that goes against it is made at the far end, by a receiver.
+            IssueCode::SENDER_DOMAIN_UNKNOWN => __('We cannot tell which domain this shop sends as, so its records were not checked. Fill in the sender address, or use a login that is an address at the shop\'s own domain.'),
+            IssueCode::DNS_UNAVAILABLE => __('The domain\'s records could not be read from this server, so nothing is known about them either way. That is usually DNS on the server rather than anything about the shop.'),
+            IssueCode::SPF_MISSING => __('%1 publishes no SPF record, so nothing says which servers may send as it. Gmail and Outlook treat mail from such a domain as suspicious by default.', ...$parameters),
+            IssueCode::SPF_MULTIPLE => __('%1 publishes two SPF records. A receiving server reads that as a permanent error and ignores both, so the domain authorises nobody at all — they have to be merged into one.', ...$parameters),
+            IssueCode::SPF_DOES_NOT_AUTHORIZE_PROVIDER => __('The SPF record of %1 does not authorise the provider this shop sends through. Until it contains %2, the provider will keep accepting the messages and receivers will keep treating them as forged.', ...$parameters),
+            IssueCode::SPF_LOOKUP_LIMIT => __('Evaluating this SPF record costs %1 DNS lookups and receivers give up after %2. Past that the record is ignored outright, however sensible it looks.', ...$parameters),
+            IssueCode::SPF_ALL_PERMISSIVE => __('The SPF record of %1 ends with +all, which authorises every server on the internet to send as it. That is worse than publishing nothing, because it looks like protection.', ...$parameters),
+            IssueCode::SPF_NO_ALL => __('The SPF record says nothing about senders it has not listed. Ending it with ~all, or with -all once everything is verified, is what makes it mean something.'),
+            IssueCode::DKIM_MISSING_FOR_PROVIDER => __('No DKIM key for this provider is published at %1; we looked for %2._domainkey. Gmail and Yahoo have expected bulk senders to sign their mail since 2024, and unsigned mail from a shop is increasingly filed as spam.', ...$parameters),
+            IssueCode::DMARC_MISSING => __('%1 publishes no DMARC record, so nobody is told when somebody forges the shop\'s address and receivers have no instruction about what to do with it.', ...$parameters),
+            IssueCode::DMARC_MONITOR_ONLY => __('The DMARC record of %1 only watches: a forged sender is reported and delivered anyway. That is the right first step, and worth moving past once SPF and DKIM are in order.', ...$parameters),
+
             default => __('Something about these settings is wrong.'),
         };
     }
@@ -186,6 +201,36 @@ class Wording
             $this->stage($state->stage),
             $settings->endpoint(),
         );
+    }
+
+    /**
+     * The heading for the sender domain's records, kept deliberately apart from "cannot send".
+     *
+     * The distinction is the whole point of having it. Red means no mail is leaving the shop and
+     * somebody has to act within the hour. This means mail is leaving and may not be arriving,
+     * which is a different job, usually for whoever looks after the domain. Saying both in the
+     * same red box would rob the red one of its meaning within a week.
+     */
+    public function deliverabilityHeadline(?string $domain): Phrase
+    {
+        if (null === $domain) {
+            return __('The shop is sending, but nothing was checked about the sender domain.');
+        }
+
+        return __('The shop is sending, but what %1 publishes means the mail may not be arriving.', $domain);
+    }
+
+    /** What the domain publishes, as a fact rather than a complaint. */
+    public function domainFact(string $what, ?bool $state): Phrase
+    {
+        if (null === $state) {
+            return __('not checked');
+        }
+        if ('spf_provider' === $what) {
+            return $state ? __('authorises this provider') : __('does not authorise this provider');
+        }
+
+        return $state ? __('published') : __('not published');
     }
 
     /** The sentence that says it is over, which is the one that earns the next warning a reading. */

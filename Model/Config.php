@@ -115,6 +115,35 @@ class Config
         return max(60, (int) $this->value('health/interval', $storeId));
     }
 
+    public function dnsCheckEnabled(?int $storeId = null): bool
+    {
+        return $this->flag('dns/enabled', $storeId);
+    }
+
+    /**
+     * The domain to ask about when no sender address has been filled in yet.
+     *
+     * This is what makes the suggestion useful at the moment it is needed — an empty settings
+     * screen — and it is the shop's own address, which is the right guess and the only one we
+     * have. It is never used for the verdict: judging a domain the shop has not said it sends
+     * as would produce a complaint about somebody else's records.
+     */
+    public function senderDomainFallback(?int $storeId = null): ?string
+    {
+        try {
+            $host = parse_url((string) $this->storeManager->getStore($storeId)->getBaseUrl(), \PHP_URL_HOST);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if (!\is_string($host) || '' === $host) {
+            return null;
+        }
+
+        // `www.` is a web host, not a mail domain, and the records live on the bare name.
+        return mb_strtolower(preg_replace('/^www\./', '', $host) ?? $host);
+    }
+
     public function warnsInPanel(?int $storeId = null): bool
     {
         return $this->flag('alerts/panel', $storeId);

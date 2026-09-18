@@ -39,6 +39,9 @@ final class WiringTest extends TestCase
     private const SAME_IN_BOTH = [
         '%1 ms',
         'Australia',
+        'DKIM',
+        'DMARC',
+        'SPF',
         'CRAM-MD5',
         'E-mail',
         'Frankfurt',
@@ -184,7 +187,7 @@ final class WiringTest extends TestCase
     public function testTheCronJobsAreWiredToSomething(): void
     {
         $jobs = self::xml('etc/crontab.xml')->group->job;
-        self::assertCount(2, $jobs);
+        self::assertCount(3, $jobs);
 
         foreach ($jobs as $job) {
             self::assertFileExists(self::pathFor((string) $job['instance']));
@@ -234,6 +237,58 @@ final class WiringTest extends TestCase
 
         self::assertStringContainsString('sendingIsSwitchedOffInMagento', $transport);
         self::assertStringContainsString("\$magento['disable']", $transport);
+    }
+
+    /** The core asks DNS through an interface, so something has to be bound to it. */
+    public function testTheDomainChecksAreWiredToAResolver(): void
+    {
+        self::assertStringContainsString(
+            '<preference for="Calmfox\Smtp\Core\Dns\Resolver" type="Calmfox\Smtp\Model\Dns\PhpResolver"/>',
+            self::read('etc/di.xml'),
+        );
+    }
+
+    /**
+     * Two bars in the panel, in two colours. "Cannot send" is critical and wants somebody within
+     * the hour; "the domain will cost you delivered mail" is a warning for whoever runs the DNS.
+     * One colour for both would train an administrator to ignore the pair.
+     */
+    public function testTheTwoPanelMessagesSpeakInDifferentColours(): void
+    {
+        $di = self::read('etc/di.xml');
+
+        self::assertStringContainsString('Calmfox\Smtp\Model\Notification\SystemMessage', $di);
+        self::assertStringContainsString('Calmfox\Smtp\Model\Notification\DeliverabilityMessage', $di);
+
+        self::assertStringContainsString('self::SEVERITY_CRITICAL', self::read('Model/Notification/SystemMessage.php'));
+        self::assertStringContainsString('self::SEVERITY_MAJOR', self::read('Model/Notification/DeliverabilityMessage.php'));
+    }
+
+    /**
+     * Nothing that renders may ask DNS anything.
+     *
+     * The system resolver takes no timeout it can be told about, so a page that looked up a
+     * record would hang for as long as somebody else's nameserver felt like. The lookups belong
+     * to the button, the cron job and the console; everything else reads what they stored. This
+     * is the kind of rule that is obeyed for a fortnight and then quietly broken by a one-line
+     * convenience, so it is a test.
+     */
+    public function testNoPageAsksDnsAnythingWhileItRenders(): void
+    {
+        $renderers = array_merge(
+            self::filesIn(\dirname(__DIR__) . '/Block', ['php']),
+            self::filesIn(\dirname(__DIR__) . '/Model/Notification', ['php']),
+            self::filesIn(\dirname(__DIR__) . '/view', ['phtml']),
+        );
+        self::assertNotEmpty($renderers);
+
+        foreach ($renderers as $file) {
+            self::assertStringNotContainsString(
+                '->refresh(',
+                self::contents($file),
+                sprintf('%s would make a DNS lookup while rendering a page', basename($file)),
+            );
+        }
     }
 
     // ── the record fitting the table it lives in ──────────────────────────────

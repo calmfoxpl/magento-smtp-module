@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Added
+
+- A check of what the sender domain publishes: SPF, DKIM and DMARC, read four times a day on
+  cron and on a button in the panel, answering the one question a connection check cannot —
+  whether the domain authorises the provider the shop sends through. Nested records are followed
+  one level, as a receiver does; a record over the ten-lookup limit, two records at once and a
+  `+all` are reported as the hard faults they are; DKIM is only judged where the provider uses a
+  selector that is the same for every customer.
+- A separate, amber warning in the panel for that, kept apart from the red "cannot send" one so
+  that neither teaches an administrator to ignore the other.
+- A suggestion from DNS while the settings are still empty: a submission service published under
+  RFC 6186, and the provider a domain's own SPF says it is set up for — offered as a question,
+  never filled in, and never carrying a credential.
+- `calmfox:smtp:health` reports the domain's findings too, and `--json` carries them; neither
+  changes the exit code, because the shop can send and the fix belongs to whoever runs the DNS.
+
 ## [1.0.0] - 2026-09-18
 
 ### Added

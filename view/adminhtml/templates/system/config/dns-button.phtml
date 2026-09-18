@@ -1,0 +1,19 @@
+<?php
+/**
+ * @var \Calmfox\Smtp\Block\Adminhtml\System\Config\DnsButton $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div class="calmfox-smtp-action" data-calmfox-smtp-action="dns" data-url="<?= $escaper->escapeUrl($block->getAjaxUrl()) ?>">
+    <?= /* @noEscape */ $block->getButtonHtml() ?>
+    <p class="calmfox-smtp-action__note">
+        <?= $escaper->escapeHtml(__('Reads the SPF, DKIM and DMARC records of the domain this shop sends as, and says whether they authorise the provider configured above. It changes nothing and sends nothing.')) ?>
+    </p>
+    <div class="calmfox-smtp-action__result" data-role="result"></div>
+</div>
+<script>
+    require(['Calmfox_Smtp/js/config-actions'], function (actions) {
+        'use strict';
+        actions('[data-calmfox-smtp-action="dns"]');
+    });
+</script>

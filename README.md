@@ -26,9 +26,22 @@ customer asking where their confirmation is, two days later.
   raises encryption, logs in and says goodbye — without sending a message. No quota is used, no
   inbox is touched, and the failures that actually happen are caught: an expired key, a rotated
   password, a blocked port, an untrusted certificate, a mechanism a provider has dropped.
+- **A check on whether the mail will be believed.** The connection check proves the shop can hand
+  a message to its provider; it cannot say whether a receiver will accept it. So the sender
+  domain's own records are read — SPF, DKIM and DMARC — and the one question that matters is
+  answered: does the domain actually authorise the provider this shop sends through? A shop that
+  moved providers and never updated SPF sends perfectly happily for weeks while Gmail files
+  everything under spam, and its own test message, sent to a colleague at the same domain,
+  arrives beautifully. Nested records are followed one level, the way a receiver does, so an
+  agency's record in the middle is not mistaken for a fault. The provider-to-record table was
+  checked against live DNS rather than written from memory, and where a provider mints a DKIM
+  selector per domain — Amazon and Postmark among them — nothing is claimed at all, because the
+  absence of a name we guessed would prove nothing.
 - **A warning that reaches somebody.** Four channels, because on a shop whose mail is down one of
   them is broken by definition:
-  - a red bar across every admin page, which is the one that always works,
+  - a red bar across every admin page, which is the one that always works — and a separate
+    amber one for the domain, because "cannot send" and "may not be arriving" are different jobs
+    on different clocks and one colour for both would get both ignored,
   - an e-mail, sent deliberately through the server's own local mail command rather than the
     provider that is not working,
   - a webhook for Slack, Teams, Discord or a monitor of your own,
@@ -65,9 +78,13 @@ Worth saying plainly, because a module that overstates this is worse than none:
 - **It cannot tell you a message was delivered.** The check proves a connection and a login. Only
   a real message proves delivery, and only the mailbox it lands in can tell you whether it reached
   the inbox or the spam folder. The panel has a button for sending one, and says as much.
-- **It does not fix deliverability.** SPF, DKIM and DMARC are records on your domain. This module
-  will tell you when the settings are right and the mail still is not arriving, which is the point
-  at which those records are the thing to look at.
+- **It reads deliverability records; it does not fix them.** SPF, DKIM and DMARC live on your
+  domain and are changed where that domain is hosted. The module reads them, says plainly when
+  they do not authorise the provider in use, and stops there — it will not edit anybody's DNS.
+- **Reading them is not the whole of deliverability.** Reputation, complaint rates, content
+  filtering and whatever a provider's own dashboard knows are all outside what DNS can answer.
+  A domain with perfect records can still be filtered, and the panel says what it checked rather
+  than implying it checked everything.
 - **It does not queue.** A message that cannot be sent fails, exactly as it would without the
   module — and is then in the log, where it can be sent again.
 - **It does not use provider HTTP APIs.** One SMTP path, which every provider in the list
@@ -79,7 +96,7 @@ Worth saying plainly, because a module that overstates this is worse than none:
 |---|---|
 | Magento | 2.4.6, 2.4.7 (Open Source and Adobe Commerce) |
 | PHP | 8.2, 8.3, 8.4 |
-| Cron | Magento's `default` group, for the periodic check |
+| Cron | Magento's `default` group, for the periodic check and the domain check |
 
 ## Installation
 
@@ -103,6 +120,7 @@ credentials, save, and press **Check the connection now**.
 | **Server** | Provider, server, port, encryption, credentials, timeout, certificate checking — and the button that checks them. |
 | **Sender** | Overrides the sender address and the envelope sender, for providers that only accept their own. |
 | **Health check** | Whether to check, how often, and how much patience to have before a problem is called one. |
+| **Sender domain** | Whether to read what the sending domain publishes, and the button that reads it now. |
 | **Who is told** | The four channels, and where the e-mail and the webhook go. |
 | **Log** | Whether to keep one, whether to keep bodies, and for how long. |
 | **Test message** | Where to send a real one, and the button that does. |
@@ -117,7 +135,8 @@ Every screen has an equivalent, so an outside monitor can ask the same questions
 ```bash
 bin/magento calmfox:smtp:health            # 0 works, 1 a problem that may pass, 2 broken, 3 not configured
 bin/magento calmfox:smtp:health --json     # the whole verdict, credentials excluded
-bin/magento calmfox:smtp:health --force    # check now rather than reusing a recent verdict
+bin/magento calmfox:smtp:health --force    # check now rather than reusing a recent verdict,
+                                           # the sender domain included
 bin/magento calmfox:smtp:test you@example.com
 bin/magento calmfox:smtp:log:prune --days=7
 ```

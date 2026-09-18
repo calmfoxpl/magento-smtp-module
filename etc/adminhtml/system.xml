@@ -151,6 +151,20 @@
                 </field>
             </group>
 
+            <group id="dns" translate="label comment" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Sender domain</label>
+                <comment>The connection check proves the shop can hand a message to its provider. Whether a receiving server believes that message is decided by what the sending domain publishes in DNS — and that is where "the settings are right and the mail still is not arriving" nearly always ends up.</comment>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Check what the domain publishes</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Four times a day, on cron, and never while a page is being rendered. It reads SPF, DKIM and DMARC and never changes anything.</comment>
+                </field>
+                <field id="check" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Check it now</label>
+                    <frontend_model>Calmfox\Smtp\Block\Adminhtml\System\Config\DnsButton</frontend_model>
+                </field>
+            </group>
+
             <group id="alerts" translate="label comment" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Who is told</label>
                 <comment>A problem is reported once, again if its reason changes, and once more after a long silence. When it is over, that is reported too.</comment>

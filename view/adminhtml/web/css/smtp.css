@@ -55,6 +55,9 @@
 }
 
 .calmfox-smtp-panel--bad { border-color: #e9b7b7; }
+
+/* Deliverability: a warning, never the alarm. The shop is sending; the mail may not arrive. */
+.calmfox-smtp-panel--warn { border-color: #e8c9a0; background: #fffaf3; }
 .calmfox-smtp-panel h2 { font-size: 1.6rem; margin: 0 0 1rem; }
 
 .calmfox-smtp-facts th {

@@ -8,6 +8,7 @@ use Calmfox\Smtp\Core\Health\HealthState;
 use Calmfox\Smtp\Core\Health\Status;
 use Calmfox\Smtp\Core\Settings\MailSettings;
 use Calmfox\Smtp\Model\Config;
+use Calmfox\Smtp\Model\Dns\DomainCheck;
 use Calmfox\Smtp\Model\Health\Monitor;
 use Calmfox\Smtp\Model\Text\Wording;
 use Magento\Framework\App\Area;
@@ -40,6 +41,7 @@ class HealthCommand extends Command
     public function __construct(
         private readonly Monitor $monitor,
         private readonly Config $config,
+        private readonly DomainCheck $domains,
         private readonly Wording $wording,
         private readonly State $state,
         ?string $name = null,
@@ -71,9 +73,21 @@ class HealthCommand extends Command
 
         $state = $this->monitor->check($storeId, true === $input->getOption('force'));
 
+        // With --force the domain is asked again too: "now" has to mean now for both halves of
+        // the answer. Without it, whatever cron last stored is what gets printed, because a
+        // monitoring command must not hang on a nameserver.
+        $domain = true === $input->getOption('force')
+            ? $this->domains->refresh($storeId)
+            : $this->domains->stored($storeId);
+
         if (true === $input->getOption('json')) {
             $output->writeln((string) json_encode(
-                ['store_id' => $storeId, 'settings' => $this->describe($resolved->settings), 'health' => $state->toArray()],
+                [
+                    'store_id' => $storeId,
+                    'settings' => $this->describe($resolved->settings),
+                    'health' => $state->toArray(),
+                    'sender_domain' => $domain?->toArray(),
+                ],
                 \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE,
             ));
 
@@ -88,6 +102,16 @@ class HealthCommand extends Command
         }
         foreach ($resolved->warnings() as $warning) {
             $output->writeln('  <comment>' . $this->wording->issue($warning) . '</comment>');
+        }
+
+        // The sender domain never changes the exit code. The shop can send; whether receivers
+        // believe it is a separate question with a separate fix, and a monitor that went red for
+        // it would be asking somebody to do the wrong thing at three in the morning.
+        if (null !== $domain && [] !== $domain->issues) {
+            $output->writeln($this->wording->deliverabilityHeadline($domain->domain));
+            foreach ($domain->issues as $issue) {
+                $output->writeln('  <comment>' . $this->wording->issue($issue) . '</comment>');
+            }
         }
 
         return $this->exitCode($state);

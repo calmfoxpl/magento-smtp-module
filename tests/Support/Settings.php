@@ -19,6 +19,7 @@ final class Settings
         string $providerId = 'custom',
         int $port = 587,
         string $host = 'mail.example.com',
+        ?string $fromEmail = null,
     ): MailSettings {
         return new MailSettings(
             enabled: true,
@@ -29,6 +30,7 @@ final class Settings
             authMethod: $authMethod,
             username: $username,
             password: $password,
+            fromEmail: $fromEmail,
         );
     }
 }

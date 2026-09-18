@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Calmfox\Smtp\Block\Adminhtml;
 
+use Calmfox\Smtp\Core\Dns\DomainVerdict;
 use Calmfox\Smtp\Core\Health\HealthState;
 use Calmfox\Smtp\Core\Health\Status;
-use Calmfox\Smtp\Core\Provider\ProviderCatalog;
 use Calmfox\Smtp\Core\Settings\Encryption;
 use Calmfox\Smtp\Core\Settings\MailSettings;
 use Calmfox\Smtp\Core\Settings\ResolvedSettings;
 use Calmfox\Smtp\Model\Config;
+use Calmfox\Smtp\Model\Dns\DomainCheck;
+use Calmfox\Smtp\Model\Provider\ProviderLabel;
 use Calmfox\Smtp\Model\Health\HealthStore;
 use Calmfox\Smtp\Model\Text\Wording;
 use Magento\Backend\Block\Template;
@@ -41,6 +43,7 @@ class Health extends Template
         Context $context,
         private readonly Config $config,
         private readonly HealthStore $store,
+        private readonly DomainCheck $domains,
         private readonly Wording $wording,
         private readonly StoreManagerInterface $storeManager,
         array $data = [],
@@ -127,7 +130,7 @@ class Health extends Template
         $settings = $this->getSettings();
 
         $facts = [
-            (string) __('Provider') => $this->providerLabel(),
+            (string) __('Provider') => ProviderLabel::of($this->getSettings()->providerId),
             (string) __('Server') => '' === $settings->host ? (string) __('not set') : $settings->endpoint(),
             (string) __('Encryption') => $this->encryptionLabel(),
             (string) __('Logs in as') => $settings->usesAuthentication()
@@ -220,6 +223,81 @@ class Health extends Template
         return $rows;
     }
 
+    // ── what the sender domain publishes ─────────────────────────────────────
+
+    public function isDomainCheckEnabled(): bool
+    {
+        return $this->config->dnsCheckEnabled($this->getStoreId());
+    }
+
+    /** The stored verdict only. This page never waits on a nameserver. */
+    public function getDomainVerdict(): ?DomainVerdict
+    {
+        return $this->domains->stored($this->getStoreId());
+    }
+
+    public function getDomainHeadline(): string
+    {
+        $verdict = $this->getDomainVerdict();
+        if (null === $verdict) {
+            return (string) __('The sender domain has not been checked yet.');
+        }
+        if ($verdict->isDeliverabilityAtRisk()) {
+            return (string) $this->wording->deliverabilityHeadline($verdict->domain);
+        }
+        if (null === $verdict->domain) {
+            return (string) __('Nothing was checked: we do not know which domain this shop sends as.');
+        }
+
+        return (string) __('Nothing in what %1 publishes should stop the mail arriving.', $verdict->domain);
+    }
+
+    /** @return array<string, string> */
+    public function getDomainFacts(): array
+    {
+        $verdict = $this->getDomainVerdict();
+        if (null === $verdict || null === $verdict->domain) {
+            return [];
+        }
+
+        $facts = [
+            (string) __('Sends as') => $verdict->domain,
+            (string) __('SPF') => (string) $this->wording->domainFact('spf', $verdict->asked ? $verdict->spfFound : null),
+        ];
+
+        if ($verdict->spfFound) {
+            $facts[(string) __('The provider in SPF')] = (string) $this->wording->domainFact('spf_provider', $verdict->spfAuthorizesProvider);
+            $facts[(string) __('SPF costs')] = (string) __('%1 of the 10 DNS lookups a receiver allows', $verdict->spfLookupCost);
+        }
+
+        $facts[(string) __('DKIM')] = (string) $this->wording->domainFact('dkim', $verdict->dkimFound);
+        $facts[(string) __('DMARC')] = null === $verdict->dmarcPolicy
+            ? (string) $this->wording->domainFact('dmarc', false)
+            : $verdict->dmarcPolicy;
+
+        if (null !== $verdict->otherSender) {
+            $facts[(string) __('Also authorised')] = $verdict->otherSender;
+        }
+
+        return $facts;
+    }
+
+    /** @return list<array{severity: string, text: string}> */
+    public function getDomainIssues(): array
+    {
+        $issues = [];
+        foreach ($this->getDomainVerdict()?->issues ?? [] as $issue) {
+            $issues[] = ['severity' => $issue->severity, 'text' => (string) $this->wording->issue($issue)];
+        }
+
+        return $issues;
+    }
+
+    public function getDomainUrl(): string
+    {
+        return $this->getUrl('calmfox_smtp/dns/inspect', ['store' => $this->getStoreId()]);
+    }
+
     public function getCheckUrl(): string
     {
         return $this->getUrl('calmfox_smtp/health/check', ['store' => $this->getStoreId()]);
@@ -243,13 +321,6 @@ class Health extends Template
     public function getTestRecipient(): string
     {
         return $this->config->testRecipient($this->getStoreId());
-    }
-
-    private function providerLabel(): string
-    {
-        $provider = ProviderCatalog::get($this->getSettings()->providerId);
-
-        return $provider->isCustom() ? (string) __('A server of my own') : $provider->label;
     }
 
     private function encryptionLabel(): string

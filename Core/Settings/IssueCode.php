@@ -47,6 +47,44 @@ final class IssueCode
     /** Magento's own SMTP settings point somewhere else, which is confusing to read later. */
     public const MAGENTO_SMTP_ALSO_CONFIGURED = 'magento_smtp_also_configured';
 
+    // ── what the sender domain publishes ─────────────────────────────────────
+    //
+    // These are a different kind of complaint from the ones above: the shop can send, the
+    // provider accepts the message, and it is the receiver who bins it. They never make the
+    // health check say "broken", because it is not — they are the answer to "everything is
+    // green and the mail still is not arriving", which is the one question the connection
+    // check cannot answer.
+
+    /** No address to judge: nothing tells us which domain the shop sends as. */
+    public const SENDER_DOMAIN_UNKNOWN = 'sender_domain_unknown';
+
+    /** DNS could not answer, so nothing was concluded either way. */
+    public const DNS_UNAVAILABLE = 'dns_unavailable';
+
+    public const SPF_MISSING = 'spf_missing';
+
+    /** Two SPF records is a permanent error at the receiver: both are ignored. */
+    public const SPF_MULTIPLE = 'spf_multiple';
+
+    /** The domain's SPF does not list the provider the shop is configured to send through. */
+    public const SPF_DOES_NOT_AUTHORIZE_PROVIDER = 'spf_does_not_authorize_provider';
+
+    /** Over ten DNS lookups: receivers give up on the record and authorise nobody. */
+    public const SPF_LOOKUP_LIMIT = 'spf_lookup_limit';
+
+    /** `+all`: everybody in the world is authorised, which is worse than having no SPF. */
+    public const SPF_ALL_PERMISSIVE = 'spf_all_permissive';
+
+    /** No `all` at the end, so unlisted senders get no verdict rather than a soft fail. */
+    public const SPF_NO_ALL = 'spf_no_all';
+
+    public const DKIM_MISSING_FOR_PROVIDER = 'dkim_missing_for_provider';
+
+    public const DMARC_MISSING = 'dmarc_missing';
+
+    /** DMARC only watches (`p=none`), so a forged sender is reported and still delivered. */
+    public const DMARC_MONITOR_ONLY = 'dmarc_monitor_only';
+
     public const ALL = [
         self::EMAIL_DISABLED_IN_MAGENTO,
         self::HOST_MISSING,
@@ -62,5 +100,32 @@ final class IssueCode
         self::FROM_EMAIL_INVALID,
         self::RETURN_PATH_INVALID,
         self::MAGENTO_SMTP_ALSO_CONFIGURED,
+        self::SENDER_DOMAIN_UNKNOWN,
+        self::DNS_UNAVAILABLE,
+        self::SPF_MISSING,
+        self::SPF_MULTIPLE,
+        self::SPF_DOES_NOT_AUTHORIZE_PROVIDER,
+        self::SPF_LOOKUP_LIMIT,
+        self::SPF_ALL_PERMISSIVE,
+        self::SPF_NO_ALL,
+        self::DKIM_MISSING_FOR_PROVIDER,
+        self::DMARC_MISSING,
+        self::DMARC_MONITOR_ONLY,
+    ];
+
+    /**
+     * The complaints that mean "the shop can send, and the mail may still not arrive".
+     *
+     * Kept as a list because the panel shows them apart from the rest and under a warning rather
+     * than an alarm: mixing "cannot send" with "may not be delivered" would rob the first of its
+     * meaning, and the first is the one somebody has to act on within the hour.
+     */
+    public const DELIVERABILITY = [
+        self::SPF_MISSING,
+        self::SPF_MULTIPLE,
+        self::SPF_DOES_NOT_AUTHORIZE_PROVIDER,
+        self::SPF_LOOKUP_LIMIT,
+        self::SPF_ALL_PERMISSIVE,
+        self::DKIM_MISSING_FOR_PROVIDER,
     ];
 }
